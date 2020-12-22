@@ -1,0 +1,146 @@
+These are initial notes laying out the C4C1 CPU's instruction set architecture, which
+consists of 16 instructions and several components accessible over an 8-bit bus.
+
+Instruction Bitfield:
+	   [11111][xxxx][xxxxxxxx][xxxxxxxx][00000]
+	   [IDENT][INST][OPERANDA][OPERANDB][EMPTY]
+
+Data Bitfield:
+	   [0000000000000000000000][xxxxxxxx]
+	   [        UNUSED        ][  DATA  ]
+
+Register Operand Bitfield (Numbered in order they are listed from 1 to the highest):
+	Ordinary Register: [0000][xxxx]
+		- AX, BX, CX, DX, EX, FX, GX, HX, IX, JX, KX, LX, MX, NX, OX, PX 
+	Special  Register: [10000][xxx]
+		- IO, IP[NOT USABLE BY USER]
+
+The Bus:
+	- Data Bus:
+		- Size: 8 bits
+		- Contents:
+			[xxxxxxxx]
+			[  DATA  ]
+	- Command Bus:
+		- Size: 12 bits
+		- Contents:
+			[xxxx][xxxxxxxx]
+			[UNIT][  CMND  ]
+
+Computer Component List (Addressable by Bus):
+	- 0000: CPU
+	- 0001: ROM
+		- CMND = [xxxxxxxx]
+		         [  ADDR  ]
+	- 0010: RAM
+		- CMND = [xxxxxxxx][x]
+		         [  ADDR  ][W]
+		- W = Write Latch - special direct line
+
+	- 0011: General Purpose Registers Unit
+		- CMND = [xxxx][xxxx]
+		         [ADDR][INST]
+		- Instructions:
+			    0000 = Read addr to CPU on data bus
+			    0001 = Write to addr with data on data bus
+	- 0100: Instruction Pointer
+	- 0101: Conditionals Unit
+	- 0110: ALU 1 (First param, operation)
+	- 0111: ALU 2 (Second param)
+	- 1000: Input/Output Register
+		- CMND = [0000][xxxx]
+		               [INST]
+		- Instructions:
+			    0000 = Read to CPU on data bus
+			    0001 = Write with data on data bus
+
+Instruction set:
+	- Control:
+		0000 = HLT [NONE]
+			- Stop CPU
+			- CPU Execution Info:
+				- 1 cycle
+				- Directly wired to CPU components
+	- Memory:
+		0001 - MOV a, b [R], [R]
+			- Copy value of register b to register a
+			- CPU Execution Info:
+				- If regular register: 2 cycles
+					- Cycle 1: [0011][xxxx][0000] = Read address b [xxxx] back to CPU
+					- Cycle 2: [0011][xxxx][0001] = Write data out of CPU onto register a [xxxx]
+
+		0010 - STORE a, b [RAMADDR], [R]
+			- Store contents of register b in memory location a
+			- CPU Execution Info:
+				- 2 cycles:
+					- Cycle 1: [0011][xxxx][0000] = Read address b [xxxx] back to CPU
+					- Cycle 2: [1][0010][xxxxxxxx] = Write data out of CPU onto address a [xxxxxxxx]
+
+
+		0011 - LOADRAM a, b, [R], [RAMADDR]			
+			- Load contents of memory location b (RAM) into register a
+				- CPU Execution Info:
+				- 2 cycles:
+					- Cycle 1: [0][0010][xxxxxxxx] = Read address b [xxxxxxxx] back to CPU
+					- Cycle 2: [0011][xxxx][0001] = Write data out of CPU onto register a [xxxx]
+
+
+		0100 - LOADROM a, b, [R], [ROMADDR]			
+			- Load contents of memory location (ROM) b into register a
+				- CPU Execution Info:
+				- 2 cycles:
+					- Cycle 1: [0001][xxxxxxxx] = Read address b [xxxxxxxx] back to CPU
+					- Cycle 2: [0011][xxxx][0001] = Write data out of CPU onto register a [xxxx]
+
+		NONE - DB a
+			- Don't decode operand - leaves data as it is
+
+	- Conditional:
+		0101 = JMP a [ROMADDR]
+			- Jump to address a
+
+		0110 = JZ a, b [ROMADDR]
+			- Jump to address a if register b is zero
+		
+		0111 = JNZ a, b [ROMADDR]
+			- Jump to address a if register b is not zero
+
+	- Arithmetic/Logic:
+		1000 = NOT a [R]
+			- Perform logical not on value a and store in a
+
+		1001 = OR a, b [R]
+			- Perform logical or on a and b, store in a
+
+		1010 = AND a, b [R]
+			- Perform logical and on a and b, store in a
+
+		1011 = ADD a, b [R]
+			- Add b to a and store in a
+ 
+		1100 - SHL a [R]
+			- Overflow shift left register a
+
+		1101 - SHR a [R]
+			- Overflow shift right register a
+
+	- Input/Output:
+		1110 - RECV a [R]
+			- Receive a value into register a
+		1111 - SEND a [R]
+			- Send a value from register a
+
+
+	- Notes:
+		- NOP can be emulated with something like add ax, 0
+		- IO register: replaces send and recv:
+			- send:
+				mov io, 35
+			- recv:
+				cmp io, 0
+				jpos myFunc
+				nop
+				jmp send
+		- Find twos complement (negate) of value of register a and store in register a (not a, inc a, delete overflow)
+		- You must do everything PERFECTLY when programming this computer. There are two section in memory: program, and data. If the PC is ever
+		  on a data segment's address, the computer will die. If the data requested with LOADRAM is an instruction, the computer will die. 
