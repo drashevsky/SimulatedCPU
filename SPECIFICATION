@@ -1,0 +1,623 @@
+C4C 1 Computer Datasheet & Specification by Daniel Rashevsky, 2016 - 2017
+
+I. Overview
+	The C4C 1 is a computer designed and built in PowderToy by Daniel Rashevsky. It is based on several materials/properties simulated by the physics engine,
+	including light rays, filters, and detectors, and different kinds of wiring. Note: this specification has not been modified much from 2016 - 2017.
+		It includes:
+		- An 8-bit Semi-Von Neumann architecture (data/addresses are 8 bits wide at maximum)
+		- A 256 byte ROM and 256 byte RAM 
+		- 16 general purpose registers (AX - PX)
+		- Hex I/O
+		- An ALU that shifts, adds, and does logical operations
+		- Three jump instructions
+		- A 21 bit bus
+
+
+
+II. Table of Contents
+	- 1. General Architecture
+		1.1 Overview
+		1.2 The Components of the Computer
+			1.2.0 Intro
+			1.2.1 The CPU
+			1.2.2 The ROM
+			1.2.3 The RAM
+			1.2.4 The Registers Unit
+			1.2.5 The Instruction Pointer
+			1.2.6 The Conditionals Unit
+			1.2.7 The ALU
+			1.2.8 The I/O Unit
+		1.3 The Bus
+			1.3.0 Intro
+			1.3.1 How the Bus Works (Bus Specification)
+			1.3.2 Microcode
+			1.3.3 Individual Component Microcode Commands
+				1.3.3.0 Intro
+				1.3.3.1 The CPU
+				1.3.3.2 The ROM
+				1.3.3.3 The RAM
+				1.3.3.4 The Register Unit
+				1.3.3.5 The Instruction Pointer
+				1.3.3.6 The Conditionals Unit
+				1.3.3.7 The ALU Accumulator
+				1.3.3.8 The ALU Secondary
+				1.3.3.9 The I/O Unit
+		1.4 The Operation of the CPU
+			1.4.0 Intro
+			1.4.1 Instructions vs. Data
+			1.4.2 Executing an Instruction
+			1.4.3 Operands
+			1.4.4 Register Operands
+
+	- 2. Programming Reference
+		2.1 Overview/Intro
+		2.2 Basic Programming
+			- HLT
+			- MOV
+			- STORE
+			- LOADRAM
+			- LOADROM
+			- DB
+			- JMP
+			- JZ
+			- JNZ
+			- OR
+			- AND
+			- NOT
+			- SHL
+			- SHR
+			- ADD
+			- RECV
+			- SEND
+		2.3 Advanced Information
+			- HLT
+			- MOV
+			- STORE
+			- LOADRAM
+			- LOADROM
+			- DB
+			- JMP
+			- JZ
+			- JNZ
+			- OR
+			- AND
+			- NOT
+			- SHL
+			- SHR
+			- ADD
+			- RECV
+			- SEND
+		2.4 Example Programs
+			2.4.1 Fibbonnaci Sequence Program
+			2.4.2 Input/Output
+
+
+
+1. General Architecture
+	1.1 Overview
+		This section of the document will describe everything related to the design of the C4C 1 and its architecture.
+		It will cover a lot of ground, ranging from the facilities/components of the C4C 1 to the instruction design to
+		the bus.
+
+	1.2 The Components
+		1.2.0 Intro
+			A computer is a really difficult and complex thing to describe to the minute details. Where do we start? I would 
+			try describing the components first, to break the "thing" down into tangible components. I define a component as
+			anything that connects and communicates with the rest of the computer through the bus. Note that I will not get very
+			technical here about each component's operation on the bus (go to the next section, 1.3). This is a general description.
+
+		1.2.1 The CPU
+			The CPU is the most important and complicated part of a computer to implement. In the C4C 1, the CPU, Instruction Pointer, and
+			ROM are attached together. The Instruction Pointer outputs an 8 bit number into the ROM, which reads it as an address and uses to
+			outputs a value into the CPU. If the value is an instruction, the CPU divides the instruction into its elements and 
+			decodes it, caching operands for later. If the value is stored data, the CPU ignores it.
+
+			Now, we come to an important stage of the CPU's execution. The CPU relies on <<microcode>> in order to control the rest of the
+			computer over the bus. Microcode is basically hardware commands, each unit on the bus is addressed and has commands
+			that it can understand. More on this in the next section (1.3). The CPU stores this microcode prewired, and puts it on the bus with
+			the operands after processing. The other units understand this, and use the commands to do things. Note that every unit has its own
+			unique commands that only it understands, making microcode and a bus more efficient than a maze of wires that is difficult to 
+			design and navigate.
+
+		1.2.2 The ROM
+			The ROM is vital to the computer's execution. It is a 256 byte FILT memory unit that contains the pre-loaded programs you write.
+			In the C4C 1, the CPU, Instruction Pointer, and ROM are attached together, as said in 1.2.1 (The CPU). The ROM receives
+			addresses from the Instruction Pointer, and sends off instructions to the CPU. The ROM is also directly connected to the bus, 
+			which allows programs to access it with the LOADROM instruction. You see, the ROM can also store data, which is distinguished 
+			from instructions in a way that I will describe in section 1.4. This allows you to load data from the ROM directly into the 
+			registers.
+
+		1.2.3 The RAM
+			The RAM is a ROM unit that I created, modified to be writeable. It is 256 bytes of FILT memory that you can read or write 
+			from, and it can be written to and read from with the LOADRAM and STORE instructions, as it is also connected to the bus.
+			This should be used for more long term storage of constants, as it is significantly slower than the registers.
+
+		1.2.4 The Registers Unit
+			The registers unit is made up of 16 registers (AX - PX). These registers are used for practically everything, from doing 
+			arithmetic/logic, to conditional operations, to input/output. The LOADROM and LOADRAM instructions load data into the 
+			registers, and the STORE instruction saves them into the RAM. The MOV instruction copies the value of one register to another.
+
+		1.2.5 The Instruction Pointer
+			The instruction pointer keeps track of which address the computer is on in the ROM. It feeds into the ROM, which feeds into
+			the CPU. You cannot read from the instruction pointer, only write to it with the JMP, JZ or JNZ instructions. It is a special
+			incrementable register adapted to keep track of instructions.
+
+		1.2.6 The Conditionals Unit
+			The conditionals unit handles the conditional jumps, JZ and JNZ. It will check if a register value that is sent to it is zero
+			or not, before choosing whether to change the instruction pointer's address or not.
+
+		1.2.7 The Arithmetic/Logic Unit
+			This large unit can be described very simply, it controls all of the logical, bitwise, and arithmetic operations - it receives 
+			the values and which operation to do from the bus, and outputs back the result. Inside the ALU, there is an adder, an OR unit, 
+			an AND unit, a NOT unit, and a shifter unit. It can be used through the ADD, NOT, AND, OR, SHL, and SHR instructions. The adder
+			is interesting - instead of a traditional ripple carry adder, it is a modified binary counter - it accepts input like a normal
+			register through 8 bits - but if more data is written onto it without clearing it it operates like a binary counter and ends
+			up adding the two numbers.
+
+		1.2.8 The I/O Unit
+			The I/O unit communicates with external devices. It takes the data on the bus and outputs it to an external
+			device, or reads from a input device and outputs its data on the bus.
+
+	1.3 The Bus
+		1.3.0 Intro
+			Now that all the components have been described, I will describe the bus, which connects all of the various components
+			together under a common protocol that can be used for communication. The bus is basically a bunch of wires (more specifically, 21)
+			placed right next to each other, that are used for signaling. It is the lifeline of the computer. Every component connects to it 
+			and communicates over it. Without it, the CPU would sit silent, unable to control the other units.
+		
+		1.3.1 How the Bus Works
+			Now that we now what the bus is, I will describe how it works. The bus's 21 wires are divided into two sections that serve 
+			different purposes. There is the 12 bit command (CMND) section of the bus, and the 8 bit data section of the bus (DATA).
+			
+			But there are 21 wires! What does the last one do? The last wire (P) signals all the components to read what is on the bus and
+			process the information. If the address specified by the command section of the bus is not the address of a unit that processes
+			it, that unit will ignore the data on the bus and let the unit with the correct address process the bus. Altogether, this is what 
+			the bus looks like in terms of bits:
+			
+			[x][xxxxxxxxxxxx][xxxxxxxx]
+			[P][    CMND    ][  DATA  ]
+
+			The command and data sections of the bus play unique roles. The data section of the bus carries, well, data. This can be anything
+			from numbers to addresses depending on the purpose, as long as it fits in 8 bits. The command section is split into two parts. The
+			first part is a 4 bit address that is unique for every unit that is on the bus. The second part is a command the unit will
+			understand. It can be anything, as long as it fits into 8 bits. So, the data and command sections would look like this:
+			
+			Command Section:
+				[xxxx][xxxxxxxx]
+				[ADDR][  CMND  ]
+
+			Data Section:
+				[xxxxxxxx]
+				[  DATA  ]
+
+		1.3.2 Microcode
+			The job of the CPU is to control the components/units over the bus. We have discussed the protocol for communication over the bus.
+			Here, I will explain how the CPU takes an instruction given to it from ROM and puts it on the bus - how it controls the components. 
+			After the operands are cached, the CPU needs to assemble a command for the bus. To do this, it selects a predefined sequence of 
+			bits from the correct place in a special memory unit, to put on the bus along with the correctly formatted operands.  
+			These predefined sequences of bits form the microcode, and are what the CPU uses to control the units in the C4C 1. 	
+			They in essence form the CPU! The completed sequence is output onto the bus, and the targeted unit returns data back to the CPU for
+			further processing. Even if there is no data to return, the P line is still signaled in order for the CPU to continue execution.
+			In a single instruction, there may be multiple steps the units need to take in order to execute it, for example, there are 5 steps
+			the units need to take to add the contents of two registers together. Therefore, there can be multiple microcode sequences that are
+			executed sequentially for each instruction, with every signal back to the CPU over the P line from a unit causing the CPU to move
+			on to the next line of microcode until the instruction is executed.
+
+		1.3.3 Individual Component Microcode Commands
+			1.3.3.0 Intro
+				This section is a reference of all the different microcode sequences the CPU puts on the bus to 
+				drive the components. Each component is different, understands different commands and has 
+				a different address on the bus. Here is a list of each unit's commands/data received, and the data it outputs to CPU.
+			
+			1.3.3.1 CPU
+				- Address: 0000
+				- Input from Bus to CPU:
+					[1][0000][00000000][xxxxxxxx]
+					[P][ADDR][  CMND  ][  DATA  ]
+					When a component processes the CPU's commands from the bus, it sends the data output back
+					to the CPU for the next step in executing an instruction
+				- Output from CPU to Bus:
+					[1][xxxx][xxxxxxxx][xxxxxxxx]
+					[P][ADDR][  CMND  ][  DATA  ]
+					The CPU, to control a component, outputs its address, CMND, and DATA 
+					(usually mixed with operands) onto the bus
+
+			1.3.3.2 ROM
+				- Address: 0001
+				- Input from Bus to ROM:
+					[1][0001][xxxxxxxx][00000000]
+					[P][ADDR][  CMND  ][  DATA  ]
+					The command is an address from the bus that corresponds to a byte of data in memory
+				- Output from ROM to Bus:
+					[1][0000][00000000][xxxxxxxx]
+					[P][ADDR][  CMND  ][  DATA  ]
+					The byte of data in the ROM is output back to the CPU on the bus
+
+			1.3.3.3 RAM
+				- Address: 0010
+				- Input from Bus to RAM:
+					[1][0010][xxxxxxxx][xxxxxxxx][x]
+					[P][ADDR][  CMND  ][  DATA  ][W]
+					The command is an address from the bus that corresponds to a byte of data in memory, W is an optional direct write
+					line from the CPU to the RAM that, if turned on, puts the RAM into write mode. In that case, the data section of
+					the bus is written to the address specified by the command section
+				- Output from RAM to Bus:
+					[1][0000][00000000][xxxxxxxx]
+					[P][ADDR][  CMND  ][  DATA  ]
+					If W was not turned on, then the data corresponding to the requested address is output back to the CPU on the bus
+
+			1.3.3.4 Registers Unit
+				- Address: 0011 
+				- Input from Bus to Registers Unit:
+					[1][0011][xxxxxxxx][xxxxxxxx]
+					[P][ADDR][  CMND  ][  DATA  ]
+					CMND consists of [xxxx][xxxx] address of register and instruction, 
+					                 [ADDR][INST] which can be 0000 (read) or 0001 (write)
+					If INST is 0001 (write), then DATA is written to the register
+				- Output from Registers Unit to Bus:
+					[1][0000][00000000][xxxxxxxx]
+					[P][ADDR][  CMND  ][  DATA  ]
+					The data the register held is output onto the bus if INST is 0000 (read)
+
+			1.3.3.5 Instruction Pointer
+				- Address: 0100
+				- Input from Bus to Instruction Pointer:
+					[1][0100][xxxxxxxx][00000000]
+					[P][ADDR][  CMND  ][  DATA  ]
+					CMND is the address to change the instruction pointer to
+				- Output from Instruction Pointer to Bus:
+					[1][0000][00000000][00000000]
+					[P][ADDR][  CMND  ][  DATA  ]
+					Signals back to the CPU that the instruction pointer was changed
+
+			1.3.3.6 Conditionals Unit
+				- Address: 0101
+				- Input from Bus to Conditionals Unit:
+					[1][0101][xxxxxxxx][xxxxxxxx][x]
+					[P][ADDR][  CMND  ][  DATA  ][I]
+					CMND is the address of an instruction in ROM to which to jump if the condition is met, and DATA is the data to check
+					for meeting the condition. I is a special direct line from the CPU to the conditionals unit which determines whether
+					to return positive for zero or not-zero (JNZ vs JZ). 1 is JZ and 0 is JNZ.
+				- Output from Conditionals Unit to Bus:
+					[1][xxxx][xxxxxxxx][00000000]
+					[P][ADDR][  CMND  ][  DATA  ]
+					Returns command to instruction pointer (sets ADDR to 0100) IF CONDITION MET, CMND is the address of the instruction to 
+					JMP to. If CONDITION NOT MET, there is no data to send, and ADDR is set to the CPU (0000)
+
+			1.3.3.7 ALU Accumulator
+				- Address: 0110
+				- Input from Bus to ALU Accumulator:
+					[1][0110][xxxxxxxx][xxxxxxxx]
+					[P][ADDR][  CMND  ][  DATA  ]
+					CMND consists of [0000][xxxx] INST is the operation to take (OR, AND, NOT, SHL, SHR, ADD) 
+				               		       [INST] numbered from 0000 - 0101 in order 
+					Data is the number to put into the accumulator
+					ALU Secondary is Operand B, Accumulator is Operand A 
+				- Output from ALU Accumulator to Bus:
+					[1][0000][00000000][xxxxxxxx]
+					[P][ADDR][  CMND  ][  DATA  ]
+					This is the result of operation - the ALU Secondary would be loaded first, then signal the CPU using the P line on
+					the bus. Then, ALU Accumulator would be loaded with data and the command, and the ALU would operate
+					and return the value on the accumulator to the CPU
+
+			1.3.3.8 ALU Secondary
+				- Address: 0111
+				- Input from Bus to ALU Secondary:
+					[1][0111][00000000][xxxxxxxx]
+					[P][ADDR][  CMND  ][  DATA  ]
+					DATA is the register value to put into the ALU secondary operand
+				- Output from ALU Secondary to Bus:
+					[1][0000][00000000][00000000]
+					[P][ADDR][  CMND  ][  DATA  ]
+					Signals back to the CPU that the operand was loaded in
+
+			1.3.3.9 I/O Unit
+				- Address: 1000
+				- Input from Bus to I/O Unit:
+					[1][1000][xxxxxxxx][xxxxxxxx]
+					[P][ADDR][  CMND  ][  DATA  ]
+					CMND consists of [0000][xxxx] which dictates whether to input data to the CPU or write data onto peripheral
+					                       [INST] to peripheral (0000 = write data to peripheral, 0001 = input data back to CPU over bus)
+					DATA is loaded data from the bus - INST 0000 writes it out to the peripheral
+				- Output from I/O Unit to Bus:
+					[1][0000][00000000][xxxxxxxx]
+					[P][ADDR][  CMND  ][  DATA  ]
+					If INST is 0000, then unit writes data that came externally onto the bus
+
+	1.4 The Operation of the CPU
+		1.4.0 Intro
+			This section is going to discuss the operation of the CPU more in-depth. We will take a look at the difference 
+			between instructions and data, how the CPU interprets instructions, and more.
+
+		1.4.1 Instructions vs. Data
+			In the first stage of the CPU's operation, the ROM unit feeds directly into the CPU a 30-bit value which corresponds to an
+			address given to it by the instruction pointer. The CPU's job is to decide what to do with this value. This is where the 
+			difference between data and instructions becomes important. In the C4C 1, data is an 8 bit value that sits in the ROM and 
+			is used by the program through the instruction LOADROM, while the instructions are what the CPU decodes and executes. 
+			Here are the bitfields for instructions and data when they sit in the ROM and are fed into the CPU:
+
+			Instruction Bitfield:
+	   			[11111][xxxx][xxxxxxxx][xxxxxxxx][00000] where IDENT = identifies byte as instruction and INST = which instruction
+	   			[IDENT][INST][OPERANDA][OPERANDB][EMPTY]
+
+			Data Bitfield:
+	   			[0000000000000000000000][xxxxxxxx]
+	   			[        UNUSED        ][  DATA  ]
+
+			As said previously, data is not executed, only instructions, so what happens when the ROM feeds data into the CPU? The CPU 
+			skips over the data, refreshing itself and moving on to the next instruction. I call this mechanism "passing", as the CPU
+			"passes over" data or anything else that isn't considered an instruction (doesn't contain instruction's identifier in highest
+			five bits).
+
+		1.4.2 Executing an Instruction
+			The CPU follows several steps to execute an instruction after it is fed in from the ROM. After checking to make sure that the
+			instruction is an instruction by looking at the highest five bits (the instruction identifier) the CPU moves on to decode the 
+			next four bits. These bits identify which instruction is to be executed. The instruction decoder, when fed these four bits, 
+			selects a location in a special memory unit containing the instruction's microcode. The operands are cached for later in a 
+			special register, the operand register. Now, back to the special memory unit that contains the microcode - the microcode unit.
+			
+			Once the instruction decoder selects the instruction's microcode (see section 1.3.2 for an explanation of what microcode is),
+			it sequentially executes the microcode, outputing each line of microcode on the bus after shifting and ORing the correct 
+			operand with the output (which operand to select, if any at all, is specified in the selected line of microcode by two bits 
+			at the end). Now, since instructions are stored as a series of microcode sequences, each time a unit returns data and the P signal 
+			to the CPU, the next microcode sequence of the instruction is executed, until the end of the instruction is reached. This is how
+			the CPU moves through several sequences of microcode to make all the units work together.
+
+			Since the C4C 1's CPU executes each instruction from a series of microcode sequences ORed with the formatted operands sequentially, 
+			we can't really calculate how long an instruction takes from each pulse of the "clock" that is attached to the top of the 
+			instruction pointer. We need to redefine what a cycle is. Instructions vary in length, and therefore, we will redefine a cycle 
+			as the length of time it takes to execute one line of microcode. This means a simple instruction like MOV might take two cycles, 
+			and a more complex one like ADD 5 or 6. 
+		
+		1.4.3 Operands
+			As specified in the instruction bitfield, there are two operands in each instruction. These operands are used to change how the
+			instruction executes - for example, in the MOV instruction, they are used to determine which registers are being copied from
+			and copied to. They are 8 bit values that can be addresses, or registers. What is missing from operands is the direct storage
+			of constants. All operands in the C4C 1 are references. This is simply the design of the C4C 1, all data constants are loaded
+			from the ROM or RAM into registers. This is also due to my laziness in implementing any method to distinguish constants from
+			references.
+
+		1.4.4 Register Operands
+			One of the operands that a instruction can store is a register. As said in section 1.2.4 (Registers unit), there are 16 registers
+			(AX - PX). These registers are addressed in a very specific way inside an operand. Since there are only 16 registers, we only need
+			a 4 bit value to store them. So, inside the operand bitfield, the register bitfield would look like this:
+
+			[0000][xxxx] where addr = address of register from 0 - 15 (AX - PX)
+			[NONE][ADDR]
+
+
+
+2. Programming Reference
+	2.1 Overview/Intro
+		This section is not as expansive as the general architecture section, and will go over programming the C4C 1. First, as a review,
+		we will go over the facilities provided for the programmer by the C4C 1 computer:
+			- 8 bit architecture - data and addresses and such are 8 bits long - computer is based around 8 bit data
+			- 256 bytes of ROM
+			- 256 bytes of RAM
+			- 16 general purpose registers: AX - PX
+			- Writeable Instruction Pointer and Conditionals Unit for jumps
+			- Arithmetic / Logic Unit
+			- 8 bit I/O port
+		
+		With those facilities in mind, let's take a look at the way instructions and data are stored in 30 bit bytes in the filt ROM:
+			Instruction Bitfield:
+	   			[11111][xxxx][xxxxxxxx][xxxxxxxx][00000] where IDENT = identifies byte as instruction and INST = which instruction
+	   			[IDENT][INST][OPERANDA][OPERANDB][EMPTY]
+
+			Data Bitfield:
+	   			[0000000000000000000000][xxxxxxxx]
+	   			[        UNUSED        ][  DATA  ]
+
+			Register bitfield (for use in operands):
+				[0000][xxxx] where addr = address of register from 0 - 15 (AX - PX)
+				[NONE][ADDR]
+
+		And a assembly instruction corresponding to instructions or data:
+			Instruction: [MNEMONIC] [OPERANDA], [OPERANDB]
+			
+			Data: DB [8BIT-BYTE]
+
+		To program the C4C 1 CPU in PowderToy, there are several steps you need to take: 
+			1. Write out the instruction in assembly mnemonics, e.g. MOV AX, BX
+			2. Find the binary address corresponding to the instruction, e.g. 0001 for MOV
+			3. Encode the operands in binary, e.g. OPERANDA[AX] becomes 00000000 and OPERANDB[BX] becomes 00000001
+			4. Put the instruction together in binary, with the identifier at the front, followed
+			   by the binary instruction address, followed by the operands, and lastly the sequence 00000
+			   e.g. 11111 + 0001 + 00000000 + 00000001 + 00000 => 111110001000000000000000100000
+			5. Convert the instruction from binary to hex, e.g. 111110001000000000000000100000 => 0x3E200020
+			6. Set the PROP tool to edit CTYPE and paste the hex instruction with the "0x" at the front,
+			   click OK and click on the filt memory cell you want to write to. The cells go from left to right,
+			   then top to bottom. (Address 0 - 15 first row, 16 - 31 second row, and so on until address 255)
+
+		Putting data into the ROM is similar. Simply convert the 8 bit byte to hex, put the 0x in front of it,
+		paste it into the PROP tool with it set to CTYPE, and click on the filt memory cell you want to write to.
+			
+	2.2 Basic Programming
+		Now that the previous section (2.1) has introduced you to the facilities provided by the C4C 1 and how to program it, 
+		I will just give you all the instructions and the information required to program with them. The instructions are formatted 
+		in a special way. I write the mnemonic of the instruction first, followed by the operands, followed by thier types: either [NONE], 
+		[REGISTER] for register, [ROMADDR] for a ROM address, [RAMADDR] for a RAM address, and [CONSTANT] for constant (used only in DB). The 
+		instruction's value in binary (address, but really OPCODE) that is used in INST from the instruction bitfield in section 2.1 is listed 
+		below this, followed by the description. Operands A and B correspond to a, b in instruction. Here you go:
+
+		HLT [NONE]
+			- Address: 0000
+			- Stops and resets the CPU
+
+		MOV a, b [REGISTER],[REGISTER]
+			- Address: 0001
+			- Copies the value of register b to register a
+
+		STORE a, b [RAMADDR], [REGISTER]
+			- Address: 0010
+			- Stores contents of register b in RAM memory location a
+
+ 		LOADRAM a, b [REGISTER], [RAMADDR]
+			- Address: 0011			
+			- Loads contents of RAM memory location b into register a
+
+	 	LOADROM a, b, [REGISTER], [ROMADDR]
+			- Address: 0100			
+			- Loads contents of ROM memory location b into register a
+
+		DB a [CONSTANT]
+			- Address: None
+			- This is a special instruction - the value of a is simply stored in the ROM, using the data bitfield talked about in
+			  section 2.1. DB stands for data byte - the instruction stores one 8 bit byte. This data can be retreived using LOADROM,
+			  where the value for the ROM address would be the address of this byte
+
+		JMP a [ROMADDR]
+			- Address: 0101
+			- Changes value of instruction pointer to the value of a - this is an unconditional jump
+
+		JZ a, b [ROMADDR], [REGISTER]
+			- Address: 0110
+			- Changes the value of the instruction pointer to the value of a only if the value of register b is zero - this is a
+			  conditional jump
+		
+		JNZ a, b [ROMADDR], [REGISTER]
+			- Address: 0111
+			- Changes the value of the instruction pointer to the value of a only if the value of register b is not zero - this is a
+			  conditional jump
+
+		OR a, b [REGISTER], [REGISTER]
+			- Address: 1000
+			- Performs logical or on values of registers a and b, stores result in register a
+
+		AND a, b [REGISTER], [REGISTER]
+			- Address: 1001
+			- Performs logical and on values of registers a and b, stores result in register a
+
+		NOT a [REGISTER]
+			- Address: 1010
+			- Performs logical not on value stored in register a and stores the value in register a
+		
+		SHL a [REGISTER]
+			- Address: 1011
+			- Performs an overflow, destructive left shift on register a
+
+		SHR a [REGISTER]
+			- Address: 1100
+			- Performs an overflow, destructive right shift on register a
+
+		ADD a, b [REGISTER], [REGISTER]
+			- Address: 1101
+			- Adds the values of registers a and b together, stores result in register a
+		
+		RECV a [REGISTER]
+			- Address: 1110
+			- Receive a value into register a from the I/O port
+
+		SEND a [REGISTER]
+			- Address: 1111
+			- Send a value from register a to the I/O port
+
+	2.3 Advanced Information
+		This information talks about the instructions on a deeper level. Here, we will talk about the actual execution of each instruction.
+		This means we get to revisit the microcode sequences from earlier. This is described in detail in section 1.4.2 and 1.3.2.
+		The following lists every instruction, and the details of how it is executed by the CPU. Each instruction's description is divided into 
+		two parts: the number of cycles it takes to execute, and a detailed description of the microcode behind each cycle. One last note: any 
+		bitfield represented by x's (e.g. [xxxx]) is where operands are ORed with the microcode.
+
+		- HLT [NONE]
+			- Number of Cycles: 1
+			- Execution Information: Special - this is wired directly to CPU components
+		
+		- MOV a, b [REGISTER],[REGISTER]
+			- Number of Cycles: 2	
+			- Execution Information:	
+				Cycle 1: [0011][xxxx][0000] = Read data of register b, address [xxxx] back to CPU
+				Cycle 2: [0011][xxxx][0001] = Write data out of CPU onto register a [xxxx]
+
+		- STORE a, b [RAMADDR], [REGISTER]
+			- Number of Cycles: 2
+			- Execution Information:
+				Cycle 1: [0011][xxxx][0000] = Read data of register b, address [xxxx] back to CPU
+				Cycle 2: [1][0010][xxxxxxxx] = Write data out of CPU onto RAM address a [xxxxxxxx]
+
+		- LOADRAM a, b [REGISTER], [RAMADDR]
+			- Number of Cycles: 2
+			- Execution Information:
+				Cycle 1: [0][0010][xxxxxxxx] = Read RAM address b [xxxxxxxx] back to CPU
+				Cycle 2: [0011][xxxx][0001] = Write data out of CPU onto register a [xxxx]
+
+		- LOADROM a, b, [REGISTER], [ROMADDR]
+			- Number of Cycles: 2
+			- Execution Information:
+				Cycle 1: [0001][xxxxxxxx] = Read ROM address b [xxxxxxxx] back to CPU
+				Cycle 2: [0011][xxxx][0001] = Write data out of CPU onto register a [xxxx]
+
+		- DB a [CONSTANT]
+			- Number of Cycles: 1
+			- Execution Information: Special - the CPU uses the "passing" mechanism to skip over this
+
+		- JMP a [ROMADDR]
+			- Number of Cycles: 1
+			- Execution Information:
+				Cycle 1: [0100][xxxxxxxx] = Write ROM address a out of CPU onto instruction pointer [xxxxxxxx]
+				
+		- JZ a, b [ROMADDR], [REGISTER]
+			- Number of Cycles: 2
+			- Execution Information:
+				Cycle 1: [0011][xxxx][0000] = Read data of register b, address [xxxx] back to CPU
+				Cycle 2: [0101][xxxxxxxx][1] = Write ROM address a out of CPU into the conditionals unit, data from register b is also
+				                               written out in order for the conditionals unit to decide whether to JMP or not
+
+		- JNZ a, b [ROMADDR], [REGISTER]
+			- Number of Cycles: 2
+			- Execution Information:
+				Cycle 1: [0011][xxxx][0000] = Read data of register b, address [xxxx] back to CPU
+				Cycle 2: [0101][xxxxxxxx][0] = Write ROM address a out of CPU into the conditionals unit, data from register b is also
+				                               written out in order for the conditionals unit to decide whether to JMP or not
+
+		- OR, AND, NOT, SHL, SHR, ADD a, b [REGISTER], [REGISTER] OR a [REGISTER]
+			- Number of Cycles: 4
+			- Special: OR, AND, ADD are a, b [REGISTER], [REGISTER] format while NOT, SHL, and SHR are a [REGISTER] format
+			- Execution Information:
+				Cycle 1: [0011][xxxx][0000] = Read data of register b, address [xxxx] back to CPU. For NOT, SHL, and SHR - AX is
+				                              read in - but this doesn't influence the execution
+				Cycle 2: [0111][00000000] = The register specified by b is read into the ALU secondary
+				Cycle 3: [0011][xxxx][0000] = Read data of register a, address [xxxx] back to CPU.
+				Cycle 4: [0110][0000][CMND] = Register a is read into ALU accumulator, CMND is the hardcoded number of which operation
+				                              to execute (0 - 5, corresponding to OR - ADD)
+				Cycle 5: [0011][xxxx][0001] = Write data out of CPU onto register a [xxxx]
+
+		- RECV a [REGISTER]
+			- Number of Cycles: 2
+			- Execution Information:
+				Cycle 1: [1000][00000001] = Request data from peripheral into the CPU
+				Cycle 2: [0011][xxxx][0001] = Write data onto register a, address [xxxx] from peripheral 
+
+		- SEND a [REGISTER]
+			- Number of Cycles: 2
+			- Execution Information:
+				Cycle 1: [0011][xxxx][0000] = Read data from register a, address [xxxx] back to CPU
+				Cycle 2: [1000][00000000] = Write loaded data to the peripheral unit
+
+	2.4 Example Programs
+		This section showcases some example programs for the C4C 1 Computer.
+
+		2.4.1 Fibonnaci Sequence Program
+		Address	Command			Binary							Hex				Comment
+		0		DB 1			000000000000000000000000000001	0x00000001		;Store the value 1 in memory cell 0
+		1		SEND AX			111111111000000000000000000000	0x3FE00000		;Since all registers are 0 at CPU start, I can output 0
+		2		LOADROM AX, 0	111110100000000000000000000000	0x3E800000		;Load memory cell 0 (a value of 1) into AX
+		3		SEND AX			111111111000000000000000000000	0x3FE00000		;Perform fibbonaci
+		4		MOV CX, AX		111110001000000100000000000000	0x3E204000
+		5		ADD AX, BX		111111101000000000000000100000	0x3FA00020
+		6		MOV CX, BX		111110001000000100000000100000	0x3E204020
+		7		SEND AX			111111111000000000000000000000	0x3FE00000		;Output fibonnaci
+		8		JZ 11, AX		111110110000010110000000000000	0x3EC16000		;Jump to terminate if AX overflows
+		9		JMP 4			111110101000001000000000000000	0x3EA08000		;Jump back to fibonnaci
+		10		DB 0xEE			000000000000000000000011101110	0x000000EE		;Store 0xEE
+		11		LOADROM AX, 10	111110100000000000000101000000	0x3E800140		;Retrieve 0xEE
+		12		SEND AX			111111111000000000000000000000	0x3FE00000		;Print "EE" on display, signifies overflow
+		13		DB 0			000000000000000000000000000000  0x00000000		;Why the hell would I want to end my program in addr 13?
+		14		HLT				111110000000000000000000000000	0x3E000000		;Halt
+
+		2.4.2 Input/Output
+		Address	Command			Binary							Hex				Comment
+		0		RECV BX			111111110000000010000000000000	0x3FC02000		;Input a number
+		1		ADD AX, BX		111111101000000000000000100000	0x3FA00020		;Add it to AX: AX is intially zero
+		2		SEND AX			111111111000000000000000000000	0x3FE00000		;Output AX
+		3		JMP 1			111110101000000010000000000000	0x3EA02000		;Repeat
