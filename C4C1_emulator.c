@@ -2,7 +2,6 @@
   * C4C1 CPU Emulator
   * Daniel Rashevsky (2017)
   * Simulates the C4C1 CPU's state and executes a program from its virtual ROM.
-  *
   */
 
 #include <stdio.h>
