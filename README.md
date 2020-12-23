@@ -6,7 +6,6 @@
 ![C4C1 Disassembled](images/C4C1_disassembled.png)
 [C4C1 Disassembled Simulator Page](https://powdertoy.co.uk/Browse/View.html?ID=2148574)
 
-**Update: Compiler Added**
 ![C4C1 Compiler](images/hardware_compiler.png)
 [C4C1 Compiler Simulator Page](http://powdertoy.co.uk/Browse/View.html?ID=2149714)
 
@@ -206,11 +205,13 @@ DB 0 		;One byte of padding
 HLT 		;Halt
 ```
 
-## Update: Virtual Machine Emulator for C4C 1
+## Virtual Machine Emulator for C4C 1
 
 I made an emulator in C for the C4C 1 machine. The code is here:
 
 [C4C1_emulator.c](C4C1_emulator.c)
+
+It runs a hardcoded program, simulating CPU state and memory.
 
 ## Conclusion
 
