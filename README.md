@@ -20,9 +20,7 @@ complete with detailed documentation and a block diagram of the internals. I am 
 
 to join the community of people who develop complex electronics and computers on TPT.
 
-I am probably the youngest person to finish such a project, being a 14 year old freshman
-
-in high school. You guys are truly amazing, and the feats you accomplish together as a
+You guys are truly amazing, and the feats you accomplish together as a
 
 community are incredible (60 hz computer, GPU, video game inside a video game, etc.)
 
@@ -32,11 +30,11 @@ I hope now to play my part in this incredible community.
 
 Before we get into the computer, here is a complete specification for further reading:
 
-[SPECIFICATION](SPECIFICATION)
+[SPECIFICATION](C4C 1 Computer Specification)
 
 And here is the block diagram:
 
-[computer_diagram_digitized_final.pdf](computer_diagram_digitized_final.pdf)
+[computer_diagram_digitized_final.pdf](C4C1 Computer Block Diagram)
 
 ## Features
 
@@ -52,7 +50,7 @@ And here is the block diagram:
 
 ## Programming Instructions
 
-Finally, we get to the programming reference. You need technical knowledge for this section. It is taken from the reference. In the ROM, data is stored in filt. Filt uses a hex number which corresponds to a 30-bit wavelength in the CTYPE:
+Finally, we get to the programming reference. You need technical knowledge for this section. It is taken from the reference. In the ROM, data is stored in filt (a light filter element). Filt uses a hex number which corresponds to a 30-bit wavelength in the CTYPE, adapted from storing colors to encoding instructions/data:
 
 _Instruction Bitfield_:
 
