@@ -1,5 +1,7 @@
 # C4C1 Simulated CPU Project
 
+The C4C1 Simulated CPU is a project I got started on at the beginning of high school in 2016, and finished in 2017. It was a rewarding journey that taught me low-level computer concepts ranging from assembly language to computer logic. The CPU runs inside of a physics engine known as PowderToy, which has a major community using it to make simulated digital devices and computers. Below is the slightly-modified overview I wrote about the computer and how it works.
+
 ![C4C1 CPU](images/C4C1.png)
 [C4C1 Computer Simulator Page](http://powdertoy.co.uk/Browse/View.html?ID=2148569)
 
@@ -23,7 +25,7 @@ You guys are truly amazing, and the feats you accomplish together as a
 
 community are incredible (60 hz computer, GPU, video game inside a video game, etc.)
 
-I hope now to play my part in this incredible community.
+I hope to now play my part in this incredible community.
 
 ## Features
 
