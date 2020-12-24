@@ -51,7 +51,7 @@ I prepared some concise notes on the instruction set architecture, found here:
 
 ## Simulation Files and Images
 
-You can access the webpages for my simulator saves at the top. I also saved the core simulation files here:
+You can access the webpages for my simulator saves at the top. I also saved the main simulation files here:
 
 - [C4C 1 Simulation Files](/simulation_files)
 
