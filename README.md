@@ -34,8 +34,6 @@ I hope now to play my part in this incredible community.
 - A 7 function ALU
 - 16 assembly instructions
 - A microcoded CPU
-- OLD TECHNOLOGY!!! We&#39;ve got ARAY/FILT/INST, and even a subframe ray gun! See if you can find it.
-- A 0.02 HZ cycle speed to teach patience
 
 ## Detailed Specification
 
