@@ -25,6 +25,18 @@ community are incredible (60 hz computer, GPU, video game inside a video game, e
 
 I hope now to play my part in this incredible community.
 
+## Features
+
+- An 8-bit Semi-Von Neumann architecture (data/addresses are 8 bits wide at maximum)
+- A 256 byte ROM and 256 byte RAM
+- 16 general purpose registers (AX - PX)
+- Hexadecimal keyboard and display
+- A 7 function ALU
+- 16 assembly instructions
+- A microcoded CPU
+- OLD TECHNOLOGY!!! We&#39;ve got ARAY/FILT/INST, and even a subframe ray gun! See if you can find it.
+- A 0.02 HZ cycle speed to teach patience
+
 ## Detailed Specification
 
 Before we get into the computer, here is a complete specification for further reading:
@@ -48,18 +60,6 @@ You can access the webpages for my simulator saves at the top. I also saved the 
 This repo includes a variety of images of the build process, final computer, and more here:
 
 - [C4C 1 Images](/images)
-
-## Features
-
-- An 8-bit Semi-Von Neumann architecture (data/addresses are 8 bits wide at maximum)
-- A 256 byte ROM and 256 byte RAM
-- 16 general purpose registers (AX - PX)
-- Hexadecimal keyboard and display
-- A 7 function ALU
-- 16 assembly instructions
-- A microcoded CPU
-- OLD TECHNOLOGY!!! We&#39;ve got ARAY/FILT/INST, and even a subframe ray gun! See if you can find it.
-- A 0.02 HZ cycle speed to teach patience
 
 ## Programming Instructions
 
