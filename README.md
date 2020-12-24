@@ -25,7 +25,7 @@ community are incredible (60 hz computer, GPU, video game inside a video game, e
 
 I hope now to play my part in this incredible community.
 
-## Detailed Specifications
+## Detailed Specification
 
 Before we get into the computer, here is a complete specification for further reading:
 
@@ -34,6 +34,20 @@ Before we get into the computer, here is a complete specification for further re
 And here is the block diagram:
 
 - [C4C1 Computer Block Diagram](computer_diagram_digitized_final.pdf)
+
+I prepared some concise notes on the instruction set architecture, found here:
+
+- [C4C 1 ISA Notes](ISA_NOTES)
+
+## Simulation Files and Images
+
+You can access the webpages for my simulator saves at the top. I also saved the core simulation files here:
+
+- [C4C 1 Simulation Files](/simulation_files)
+
+This repo includes a variety of images of the build process, final computer, and more here:
+
+- [C4C 1 Images](/images)
 
 ## Features
 
@@ -204,6 +218,8 @@ DB 0 		;One byte of padding
 
 HLT 		;Halt
 ```
+
+For more example programs, go to the [sample_programs](/sample_programs) directory.
 
 ## Virtual Machine Emulator for C4C 1
 
