@@ -29,11 +29,11 @@ I hope now to play my part in this incredible community.
 
 Before we get into the computer, here is a complete specification for further reading:
 
-[SPECIFICATION](C4C 1 Computer Specification)
+[C4C 1 Computer Specification](SPECIFICATION)
 
 And here is the block diagram:
 
-[computer_diagram_digitized_final.pdf](C4C1 Computer Block Diagram)
+[C4C1 Computer Block Diagram](computer_diagram_digitized_final.pdf)
 
 ## Features
 
