@@ -200,7 +200,7 @@ MOV CX, AX
 
 ADD AX, BX
 
-MOV CX, BX
+MOV BX, CX
 
 SEND AX 	;Output fibonnaci
 
